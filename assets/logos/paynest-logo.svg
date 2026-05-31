@@ -1,0 +1,23 @@
+<svg width="220" height="70" viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#7C3AED"/>
+<stop offset="100%" stop-color="#EC4899"/>
+</linearGradient>
+</defs>
+
+<circle cx="35" cy="35" r="28" fill="none" stroke="url(#g)" stroke-width="4"/>
+
+<path d="M15 42 C25 55,45 55,55 42" fill="none" stroke="url(#g)" stroke-width="4"/>
+
+<path d="M18 48 C28 60,42 60,52 48" fill="none" stroke="url(#g)" stroke-width="4"/>
+
+<text x="29" y="41" font-size="22" font-weight="bold" fill="url(#g)">₹</text>
+
+<text x="75" y="45"
+font-size="32"
+font-weight="700"
+fill="url(#g)">
+PayNest
+</text>
+</svg>
