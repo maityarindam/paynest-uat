@@ -1,0 +1,17 @@
+<svg width="500" height="350" viewBox="0 0 500 350" xmlns="http://www.w3.org/2000/svg">
+
+<rect x="80" y="50" width="340" height="220" rx="20" fill="#FFFFFF" opacity="0.95"/>
+
+<rect x="110" y="90" width="120" height="18" rx="5" fill="#C084FC"/>
+
+<rect x="110" y="130" width="250" height="12" rx="5" fill="#E5E7EB"/>
+
+<rect x="110" y="160" width="220" height="12" rx="5" fill="#E5E7EB"/>
+
+<rect x="110" y="190" width="180" height="12" rx="5" fill="#E5E7EB"/>
+
+<circle cx="380" cy="240" r="40" fill="#9333EA"/>
+
+<text x="365" y="250" font-size="30" fill="white">₹</text>
+
+</svg>
