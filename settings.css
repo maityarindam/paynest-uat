@@ -1,0 +1,199 @@
+/* =============================================
+   PAYNEST — SETTINGS PAGE STYLESHEET
+============================================= */
+
+/* ══════════════════════════════
+   PAGE HEADER
+══════════════════════════════ */
+.settings-page-header {
+  margin-bottom: 24px;
+}
+
+.settings-page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.settings-page-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7C3AED, #EC4899);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(124,58,237,.3);
+}
+
+.settings-page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.settings-page-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ══════════════════════════════
+   CATEGORIES GRID
+══════════════════════════════ */
+.settings-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .settings-categories-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  .settings-categories-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════
+   CATEGORY CARD
+══════════════════════════════ */
+.settings-category-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, transform .18s, border-color .18s;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Active (clickable) card */
+.settings-card-active {
+  cursor: pointer;
+}
+.settings-card-active:hover {
+  box-shadow: 0 8px 28px rgba(124,58,237,.14);
+  transform: translateY(-3px);
+  border-color: var(--primary-light);
+}
+.settings-card-active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #7C3AED, #EC4899);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.settings-card-active:hover::before {
+  opacity: 1;
+}
+
+/* Soon (disabled) card */
+.settings-card-soon {
+  cursor: not-allowed;
+  opacity: .72;
+}
+.settings-card-soon:hover {
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}
+
+/* ══════════════════════════════
+   CARD INTERNALS
+══════════════════════════════ */
+.scc-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scc-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.scc-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.scc-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.scc-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: rgba(124,58,237,.1);
+  color: var(--primary);
+}
+
+.scc-tag-soon {
+  background: rgba(107,114,128,.1);
+  color: var(--muted);
+}
+
+.scc-arrow {
+  color: var(--primary);
+  flex-shrink: 0;
+  align-self: center;
+  transition: transform .18s;
+}
+.settings-card-active:hover .scc-arrow {
+  transform: translateX(4px);
+}
+
+.scc-arrow-muted {
+  color: var(--border);
+}
+
+/* ══════════════════════════════
+   DARK MODE
+══════════════════════════════ */
+body.dark-mode .settings-page-title { color: #F3F4F6; }
+body.dark-mode .settings-page-sub   { color: var(--muted); }
+
+body.dark-mode .settings-category-card {
+  background: var(--white);
+  border-color: var(--border);
+}
+body.dark-mode .settings-card-active:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 8px 28px rgba(124,58,237,.2);
+}
+body.dark-mode .scc-title { color: #F3F4F6; }
+body.dark-mode .scc-desc  { color: var(--muted); }
+body.dark-mode .scc-tag   { background: rgba(124,58,237,.18); color: var(--primary-light); }
+body.dark-mode .scc-tag-soon { background: rgba(107,114,128,.15); }
+body.dark-mode .scc-arrow-muted { color: var(--border); }

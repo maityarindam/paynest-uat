@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayNest | Dashboard</title>
+  <!-- Favicon: PayNest logo as SVG favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/logos/paynest-favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ══════════════════════════════
+       SIDEBAR
+  ══════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sb-logo">
+      <div class="sb-logo-icon">
+        <img src="assets/logos/paynest-favicon-white.svg" alt="PayNest" class="sb-logo-img" />
+      </div>
+      <span class="sb-logo-text">PayNest</span>
+    </div>
+
+    <button class="sb-pin-btn" id="sbPinBtn" title="Keep open">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10M12 12l4 4M12 12l-4 4M3 21h18"/></svg>
+      <span>Keep Open</span>
+    </button>
+
+    <nav class="sb-nav">
+      <a class="sb-item active" href="dashboard.html" data-label="Dashboard">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </span>
+        <span class="sb-label">Dashboard</span>
+      </a>
+      <a class="sb-item" href="employees.html" data-label="Employees">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        </span>
+        <span class="sb-label">Employees</span>
+      </a>
+      <a class="sb-item" href="#" data-label="Payroll">
+        <span class="sb-icon">
+          <!-- INR symbol (₹) as SVG path -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6" y1="5" x2="18" y2="5"/>
+            <line x1="6" y1="10" x2="18" y2="10"/>
+            <path d="M6 10l7 9"/>
+            <path d="M6 5h5a4 4 0 0 1 0 5H6"/>
+          </svg>
+        </span>
+        <span class="sb-label">Payroll</span>
+      </a>
+      <a class="sb-item" href="#" data-label="Attendance">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
+        </span>
+        <span class="sb-label">Attendance</span>
+      </a>
+      <a class="sb-item" href="#" data-label="Leave">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="sb-label">Leave</span>
+      </a>
+      <a class="sb-item" href="#" data-label="Reports">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
+        <span class="sb-label">Reports</span>
+      </a>
+      <a class="sb-item" href="settings.html" data-label="Settings">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2m0 18v-2m7.07-3.93l-1.41-1.41M4.93 19.07l1.41-1.41M2 12h2m18 0h-2"/></svg>
+        </span>
+        <span class="sb-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <button class="sb-item sb-logout" onclick="logout()">
+        <span class="sb-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span>
+        <span class="sb-label">Logout</span>
+      </button>
+    </div>
+
+    <div class="sb-tooltip" id="sbTooltip"></div>
+  </aside>
+
+  <!-- ══════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════ -->
+  <div class="main-wrap" id="mainWrap">
+
+    <!-- ── TOPBAR ── -->
+    <header class="topbar">
+
+      <div class="topbar-left">
+        <div class="topbar-brand">
+          <img src="assets/logos/paynest-favicon.svg" alt="PayNest" class="topbar-brand-img" />
+          <span class="topbar-brand-name">PayNest</span>
+        </div>
+        <div class="topbar-breadcrumb">
+          <span class="topbar-page-select" id="pageSelectBtn">
+            Dashboard
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+          <div class="page-dropdown" id="pageDropdown">
+            <a class="pd-item active" href="dashboard.html">⊞ Dashboard</a>
+            <a class="pd-item" href="employees.html">👥 Employees</a>
+            <a class="pd-item" href="#">💰 Payroll</a>
+            <a class="pd-item" href="#">📅 Attendance</a>
+            <a class="pd-item" href="#">🌿 Leave</a>
+            <a class="pd-item" href="#">📊 Reports</a>
+            <a class="pd-item" href="settings.html">⚙️ Settings</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-search">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search employees, departments..." id="globalSearch" />
+        <span class="search-kbd">⌘K</span>
+      </div>
+
+      <div class="topbar-right">
+
+        <!-- Live clock -->
+        <div class="tb-clock" id="tbClock">
+          <div class="tb-clock-time" id="tbClockTime">00:00:00</div>
+          <div class="tb-clock-date" id="tbClockDate">Mon, 01 Jan 2026</div>
+        </div>
+
+        <button class="tb-icon-btn notif-btn" id="notifBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge">3</span>
+        </button>
+
+        <!-- Dark mode toggle button -->
+        <button class="tb-icon-btn dark-mode-btn" id="darkModeBtn" title="Toggle dark mode">
+          <!-- Sun icon (shown in dark mode) -->
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- Moon icon (shown in light mode) -->
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
+        <a href="settings.html" class="tb-icon-btn" id="settingsBtn" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+
+        <div class="tb-user" id="userDropdownBtn">
+          <div class="tb-avatar" id="tbAvatar">A</div>
+          <div class="tb-user-info">
+            <span class="tb-name" id="tbName">Arindam Maity</span>
+            <span class="tb-role">Admin</span>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+
+          <div class="user-dropdown" id="userDropdown">
+            <div class="ud-header">
+              <div class="ud-avatar" id="udAvatar">A</div>
+              <div>
+                <div class="ud-name" id="udName">Arindam Maity</div>
+                <div class="ud-email">admin@abcltd.com</div>
+              </div>
+            </div>
+            <div class="ud-divider"></div>
+            <label class="ud-item ud-photo-upload">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Upload Photo
+              <input type="file" accept="image/*" id="photoUpload" style="display:none" />
+            </label>
+            <a class="ud-item" href="#">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              My Profile
+            </a>
+            <a class="ud-item" href="#">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Change Password
+            </a>
+            <div class="ud-divider"></div>
+            <button class="ud-item ud-logout" onclick="logout()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div class="tb-client">
+          <img src="assets/logos/abc-logo.svg" alt="ABC Ltd" class="tb-client-logo" />
+          <span class="tb-client-name">ABC Ltd.</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── PAGE BODY ── -->
+    <div class="page-body">
+
+      <!-- ── WELCOME SECTION ── -->
+      <section class="welcome-row">
+
+        <div class="welcome-card" id="welcomeCard">
+          <div class="welcome-text-col">
+            <h2 class="welcome-heading" id="welcomeHeading">Good Morning, Arindam! 👋</h2>
+            <p class="welcome-sub">Welcome back! Have a productive day ahead.</p>
+            <div class="welcome-quote" id="welcomeQuote">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#7C3AED"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.598-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.598-3.996 5.849h3.983v10h-9.983z"/></svg>
+              <div>
+                <div class="quote-label">Quote of the day</div>
+                <p class="quote-text" id="quoteText">"Success is the sum of small efforts, repeated day in and day out."</p>
+              </div>
+            </div>
+          </div>
+          <div class="welcome-bg-graphic" id="welcomeBgGraphic">
+            <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#f5d0fe"/></linearGradient>
+                <linearGradient id="mtn1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient>
+                <linearGradient id="mtn2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient>
+              </defs>
+              <rect width="400" height="200" fill="url(#sky)"/>
+              <circle cx="320" cy="60" r="35" fill="#fde68a" opacity=".7"/>
+              <circle cx="320" cy="60" r="22" fill="#fbbf24" opacity=".6"/>
+              <polygon points="0,200 80,70 160,200" fill="url(#mtn1)" opacity=".5"/>
+              <polygon points="60,200 180,50 300,200" fill="url(#mtn2)" opacity=".6"/>
+              <polygon points="200,200 310,80 400,200" fill="url(#mtn1)" opacity=".55"/>
+              <polygon points="30,200 42,160 54,200" fill="#4c1d95"/>
+              <polygon points="50,200 62,155 74,200" fill="#3b0764"/>
+              <polygon points="340,200 352,158 364,200" fill="#4c1d95"/>
+              <polygon points="360,200 372,163 384,200" fill="#3b0764"/>
+              <path d="M150,45 Q155,40 160,45" stroke="#7c3aed" stroke-width="1.5" fill="none"/>
+              <path d="M170,38 Q175,33 180,38" stroke="#7c3aed" stroke-width="1.5" fill="none"/>
+              <path d="M190,50 Q195,45 200,50" stroke="#7c3aed" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="welcome-controls-card">
+          <div class="wc-title">Welcome Section</div>
+          <div class="wc-toggles">
+            <label class="wc-toggle-row">
+              <span>Greeting Message</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="toggleGreeting" checked />
+                <span class="ts-slider"></span>
+              </div>
+            </label>
+            <label class="wc-toggle-row">
+              <span>Quote of the Day</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="toggleQuote" checked />
+                <span class="ts-slider"></span>
+              </div>
+            </label>
+            <label class="wc-toggle-row">
+              <span>Background Graphics</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="toggleBg" checked />
+                <span class="ts-slider"></span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="customize-card">
+          <div class="wc-title">Customize Dashboard</div>
+          <button class="manage-widgets-btn" id="manageWidgetsBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="8" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
+            Manage Widgets
+          </button>
+          <div class="widget-manager" id="widgetManager">
+            <div class="wm-title">Show / Hide Widgets</div>
+            <label class="wm-row"><input type="checkbox" checked data-widget="kpicards" /> Payroll KPI Cards</label>
+            <label class="wm-row"><input type="checkbox" checked data-widget="tasks" /> My Tasks</label>
+            <label class="wm-row"><input type="checkbox" checked data-widget="quickactions" /> Quick Actions</label>
+            <label class="wm-row"><input type="checkbox" checked data-widget="activities" /> Recent Activities</label>
+            <label class="wm-row"><input type="checkbox" checked data-widget="holidays" /> Upcoming Holidays</label>
+            <div class="wm-divider"></div>
+            <div class="wm-title">Charts</div>
+            <label class="wm-row"><input type="checkbox" checked data-chart="chartEmpAdd" /> Employee Addition</label>
+            <label class="wm-row"><input type="checkbox" checked data-chart="chartYearsService" /> Years in Service</label>
+            <label class="wm-row"><input type="checkbox" checked data-chart="chartGender" /> Gender Distribution</label>
+            <label class="wm-row"><input type="checkbox" checked data-chart="chartAge" /> Age Distribution</label>
+            <label class="wm-row"><input type="checkbox" checked data-chart="chartEmpCount" /> Employee Count Trend</label>
+            <label class="wm-row"><input type="checkbox" checked data-chart="chartPayrollCost" /> Payroll Cost Trend</label>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── KPI CARDS SECTION ── -->
+      <section class="kpi-cards-section" id="kpiCardsWidget">
+        <div class="kpi-section-header">
+          <span class="kpi-section-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>
+            Payroll KPIs
+          </span>
+          <span class="kpi-fy-badge">FY 2025–26</span>
+        </div>
+        <div class="kpi-cards-grid">
+          <!-- KPI 1: Current FY Payroll Cost -->
+          <div class="kpi-card kpi-purple" id="kpiCardFY">
+            <div class="kpi-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="5" x2="18" y2="5"/><line x1="6" y1="10" x2="18" y2="10"/><path d="M6 10l7 9"/><path d="M6 5h5a4 4 0 0 1 0 5H6"/></svg></div>
+            <div class="kpi-card-body">
+              <div class="kpi-card-label">Current FY Payroll Cost</div>
+              <div class="kpi-card-value" id="kpiFYValue">₹0</div>
+              <div class="kpi-card-sub" id="kpiFYSub">FY 2025-26 · loading…</div>
+            </div>
+            <div class="kpi-card-trend kpi-trend-up" id="kpiFYTrend">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+              <span id="kpiFYTrendVal">—</span>
+            </div>
+          </div>
+          <!-- KPI 2: Overall Payroll Cost -->
+          <div class="kpi-card kpi-green" id="kpiCardOverall">
+            <div class="kpi-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="5" x2="18" y2="5"/><line x1="6" y1="10" x2="18" y2="10"/><path d="M6 10l7 9"/><path d="M6 5h5a4 4 0 0 1 0 5H6"/></svg></div>
+            <div class="kpi-card-body">
+              <div class="kpi-card-label">Overall Payroll Cost</div>
+              <div class="kpi-card-value" id="kpiOverallValue">₹0</div>
+              <div class="kpi-card-sub">All time · across all employees</div>
+            </div>
+            <div class="kpi-card-trend kpi-trend-neutral">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>All time</span>
+            </div>
+          </div>
+          <!-- KPI 3: Avg Monthly Payroll -->
+          <div class="kpi-card kpi-blue" id="kpiCardAvg">
+            <div class="kpi-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 15h8M8 18h5"/></svg></div>
+            <div class="kpi-card-body">
+              <div class="kpi-card-label">Avg Monthly Payroll</div>
+              <div class="kpi-card-value" id="kpiAvgValue">₹0</div>
+              <div class="kpi-card-sub">Current FY monthly average</div>
+            </div>
+            <div class="kpi-card-trend kpi-trend-up">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+              <span id="kpiAvgTrendVal">—</span>
+            </div>
+          </div>
+          <!-- KPI 4: Cost Per Employee -->
+          <div class="kpi-card kpi-pink" id="kpiCardCPE">
+            <div class="kpi-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="kpi-card-body">
+              <div class="kpi-card-label">Cost Per Employee</div>
+              <div class="kpi-card-value" id="kpiCPEValue">₹0</div>
+              <div class="kpi-card-sub">Avg annual CTC per active employee</div>
+            </div>
+            <div class="kpi-card-trend kpi-trend-neutral">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Per head</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CHARTS SECTION ── -->
+      <div class="charts-section-wrapper" id="chartsSection">
+        <div class="charts-section-header">
+          <span class="charts-section-title">Analytics &amp; Charts</span>
+          <div class="charts-scroll-arrows">
+            <button class="cs-arrow" id="csArrowLeft" title="Scroll left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="cs-arrow" id="csArrowRight" title="Scroll right">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="charts-scroll-track" id="chartsScrollTrack">
+          <section class="charts-section" id="chartsSectionInner">
+
+            <!-- Chart 1: Employee Addition -->
+            <div class="chart-card chart-card-1" id="chartCard-chartEmpAdd">
+              <div class="cc-header">
+                <div class="cc-header-text">
+                  <div class="cc-title">1. Employee Addition</div>
+                  <div class="cc-sub">Current Financial Year (2025-26)</div>
+                </div>
+                <select class="cc-year-select" id="empAddYear">
+                  <option>This Year</option>
+                  <option>Last Year</option>
+                  <option>2023-24</option>
+                </select>
+              </div>
+              <div class="cc-stat-row">
+                <div class="cc-big-num">128 <span class="cc-delta positive">+18.7% vs last year</span></div>
+              </div>
+              <div class="cc-chart-wrap">
+                <canvas id="chartEmpAdd"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Years in Service -->
+            <div class="chart-card chart-card-2" id="chartCard-chartYearsService">
+              <div class="cc-header">
+                <div class="cc-title">2. Years in Service</div>
+              </div>
+              <div class="cc-chart-wrap cc-donut-wrap">
+                <canvas id="chartYearsService"></canvas>
+                <div class="donut-center">
+                  <div class="donut-num">248</div>
+                  <div class="donut-lbl">Employees</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 3: Gender -->
+            <div class="chart-card chart-card-3" id="chartCard-chartGender">
+              <div class="cc-header">
+                <div class="cc-title">3. Gender Distribution</div>
+              </div>
+              <div class="cc-chart-wrap cc-donut-wrap">
+                <canvas id="chartGender"></canvas>
+                <div class="donut-center">
+                  <div class="donut-num">248</div>
+                  <div class="donut-lbl">Employees</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 4: Age Distribution -->
+            <div class="chart-card chart-card-4" id="chartCard-chartAge">
+              <div class="cc-header">
+                <div class="cc-title">4. Age Distribution</div>
+              </div>
+              <div class="cc-chart-wrap">
+                <canvas id="chartAge"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 5: Employee Count Trend -->
+            <div class="chart-card chart-card-5" id="chartCard-chartEmpCount">
+              <div class="cc-header">
+                <div class="cc-header-text">
+                  <div class="cc-title">5. Employee Count Trend</div>
+                  <div class="cc-sub">Total Employees</div>
+                </div>
+                <select class="cc-year-select" id="empCountYear">
+                  <option>This Year</option>
+                  <option>Last Year</option>
+                </select>
+              </div>
+              <div class="cc-stat-row">
+                <div class="cc-big-num">248 <span class="cc-delta positive">+12.4% vs last year</span></div>
+              </div>
+              <div class="cc-chart-wrap">
+                <canvas id="chartEmpCount"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 6: Payroll Cost Trend -->
+            <div class="chart-card chart-card-6" id="chartCard-chartPayrollCost">
+              <div class="cc-header">
+                <div class="cc-header-text">
+                  <div class="cc-title">6. Payroll Cost Trend</div>
+                  <div class="cc-sub">Monthly cost within FY</div>
+                </div>
+                <select class="cc-year-select" id="payrollCostYear">
+                  <option>This Year</option>
+                  <option>Last Year</option>
+                </select>
+              </div>
+              <div class="cc-stat-row">
+                <div class="cc-big-num" id="payrollCostTotal">₹0 <span class="cc-delta positive" id="payrollCostDelta">FY Total</span></div>
+              </div>
+              <div class="cc-chart-wrap">
+                <canvas id="chartPayrollCost"></canvas>
+              </div>
+            </div>
+
+          </section>
+        </div>
+      </div>
+
+      <!-- ── HOLIDAYS SECTION ── -->
+      <section class="holidays-section" id="holidaysWidget">
+        <div class="hol-header">
+          <div class="hol-header-left">
+            <span class="hol-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
+              Upcoming Holidays
+            </span>
+            <span class="hol-year-badge" id="holYearBadge">FY 2025-26</span>
+          </div>
+          <button class="hol-view-all-btn" id="holViewAllBtn" onclick="openHolidayModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            View Full Calendar
+          </button>
+        </div>
+        <div class="hol-cards-track" id="holCardsTrack"></div>
+      </section>
+
+      <!-- ── BOTTOM ROW ── -->
+      <section class="bottom-row">
+
+        <div class="bottom-card tasks-card" id="tasksWidget">
+          <div class="bc-header">
+            <span class="bc-title">My Tasks</span>
+            <button class="add-task-btn" id="addTaskBtn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Task
+            </button>
+          </div>
+          <div class="add-task-form" id="addTaskForm">
+            <input type="text" placeholder="Task description..." id="newTaskText" class="task-input" />
+            <input type="date" id="newTaskDate" class="task-input task-date" />
+            <div class="atf-btns">
+              <button class="atf-save" id="saveTaskBtn">Save</button>
+              <button class="atf-cancel" id="cancelTaskBtn">Cancel</button>
+            </div>
+          </div>
+          <div class="tasks-list" id="tasksList"></div>
+        </div>
+
+        <div class="bottom-card quick-card" id="quickactionsWidget">
+          <div class="bc-header">
+            <span class="bc-title">Quick Actions</span>
+          </div>
+          <div class="quick-actions-grid">
+            <div class="qa-item" onclick="window.location.href='employees.html?action=add'" style="cursor:pointer;">
+              <div class="qa-icon" style="background:rgba(124,58,237,.1);color:#7C3AED;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              </div>
+              <span>Add Employee</span>
+            </div>
+            <div class="qa-item">
+              <div class="qa-icon" style="background:rgba(16,185,129,.1);color:#10B981;">
+                <!-- INR ₹ icon for Run Payroll -->
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="6" y1="5" x2="18" y2="5"/>
+                  <line x1="6" y1="10" x2="18" y2="10"/>
+                  <path d="M6 10l7 9"/>
+                  <path d="M6 5h5a4 4 0 0 1 0 5H6"/>
+                </svg>
+              </div>
+              <span>Run Payroll</span>
+            </div>
+            <div class="qa-item">
+              <div class="qa-icon" style="background:rgba(245,158,11,.1);color:#F59E0B;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <span>Generate Report</span>
+            </div>
+            <div class="qa-item">
+              <div class="qa-icon" style="background:rgba(6,182,212,.1);color:#06B6D4;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <span>Leave Requests</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-card activities-card" id="activitiesWidget">
+          <div class="bc-header">
+            <span class="bc-title">Recent Activities</span>
+          </div>
+          <div class="activity-list">
+            <div class="act-item">
+              <div class="act-icon act-purple">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="act-text">
+                <span>New employee <strong>Arjun Das</strong> has been added</span>
+                <span class="act-time">2 hours ago</span>
+              </div>
+            </div>
+            <div class="act-item">
+              <div class="act-icon act-green">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/></svg>
+              </div>
+              <div class="act-text">
+                <span>Payroll for <strong>March 2026</strong> has been processed</span>
+                <span class="act-time">5 hours ago</span>
+              </div>
+            </div>
+            <div class="act-item">
+              <div class="act-icon act-pink">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div class="act-text">
+                <span>Leave request approved for <strong>Priya Sharma</strong></span>
+                <span class="act-time">1 day ago</span>
+              </div>
+            </div>
+            <div class="act-item">
+              <div class="act-icon act-blue">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="act-text">
+                <span>Salary slip generated for <strong>248 employees</strong></span>
+                <span class="act-time">2 days ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div><!-- /page-body -->
+
+    <footer class="app-footer">
+      <span class="footer-copy">© 2026 PayNest Technologies. All rights reserved.</span>
+      <span class="footer-ver">Version: 1.0.0</span>
+      <div class="footer-brand">
+        Powered by
+        <img src="assets/logos/paynest-favicon.svg" alt="PayNest" class="footer-logo-img" />
+        <span class="footer-brand-name">PayNest</span>
+      </div>
+    </footer>
+
+  </div><!-- /main-wrap -->
+
+</div><!-- /app -->
+
+<!-- ══════════════════════════════
+     HOLIDAY CALENDAR MODAL
+══════════════════════════════ -->
+<div class="hol-modal-overlay" id="holModalOverlay" onclick="closeHolidayModal()" style="display:none;">
+  <div class="hol-modal" onclick="event.stopPropagation()">
+    <div class="hol-modal-header">
+      <div class="hol-modal-title-row">
+        <div class="hol-modal-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div>
+          <div class="hol-modal-title">Holiday Calendar</div>
+          <div class="hol-modal-sub">Financial Year 2025–26 · India</div>
+        </div>
+      </div>
+      <button class="hol-modal-close" onclick="closeHolidayModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="hol-modal-stats" id="holModalStats"></div>
+    <div class="hol-modal-filter-row">
+      <button class="hol-filter-btn active" data-filter="all" onclick="filterHolidays(this)">All Holidays</button>
+      <button class="hol-filter-btn" data-filter="national" onclick="filterHolidays(this)">National</button>
+      <button class="hol-filter-btn" data-filter="regional" onclick="filterHolidays(this)">Regional</button>
+      <button class="hol-filter-btn" data-filter="optional" onclick="filterHolidays(this)">Optional</button>
+    </div>
+    <div class="hol-modal-body" id="holModalBody"></div>
+    <div class="hol-modal-footer">
+      <span class="hol-modal-note">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Holidays are subject to change based on company policy. Regional holidays may vary.
+      </span>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
