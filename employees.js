@@ -1829,6 +1829,7 @@ function openImportModal() {
   importParsedRows = [];
   importValidRows  = [];
   importErrorRows  = [];
+  _templateSelectedCols = null; // reset column selection
   _syncImportStepUI();
   _renderColumnsList();
   /* Reset file input */
@@ -1844,33 +1845,100 @@ function closeImportModal() {
   document.body.style.overflow = "";
 }
 
-/* ── Column list (step 1) ── */
+/* ── Column selector state ── */
+// Track which optional columns are selected for the template download
+var _templateSelectedCols = null; // null = use all; initialised in _renderColumnsList
+
+/* ── Column list (step 1) — interactive selector ── */
 function _renderColumnsList() {
   const el = document.getElementById("importColumnsList");
   if (!el) return;
-  el.innerHTML = IMPORT_COLUMNS.map(function(c) {
-    return '<span class="import-col-tag ' + (c.required ? "required" : "") + '">' +
-      (c.required ? '<span class="import-col-req-dot"></span>' : "") +
-      c.label +
-    '</span>';
-  }).join("");
+
+  // Initialise selection: required always on, optionals all on by default
+  if (!_templateSelectedCols) {
+    _templateSelectedCols = {};
+    IMPORT_COLUMNS.forEach(function(c) { _templateSelectedCols[c.key] = true; });
+  }
+
+  // Header row
+  const optionalCount = IMPORT_COLUMNS.filter(function(c){ return !c.required; }).length;
+  const selectedOptional = IMPORT_COLUMNS.filter(function(c){ return !c.required && _templateSelectedCols[c.key]; }).length;
+
+  el.innerHTML =
+    '<div class="imp-col-selector-header">' +
+      '<div class="imp-col-selector-info">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+        '<span>Select which columns to include in the template. <strong>Mandatory columns</strong> cannot be removed.</span>' +
+      '</div>' +
+      '<div class="imp-col-selector-actions">' +
+        '<button class="imp-col-sel-btn" onclick="_templateSelectAll(true)">Select All Optional</button>' +
+        '<button class="imp-col-sel-btn" onclick="_templateSelectAll(false)">Deselect All Optional</button>' +
+        '<span class="imp-col-count" id="impColCount">' + (IMPORT_COLUMNS.filter(function(c){ return _templateSelectedCols[c.key]; }).length) + ' / ' + IMPORT_COLUMNS.length + ' columns</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="imp-col-grid" id="impColGrid">' +
+      IMPORT_COLUMNS.map(function(c) {
+        const checked = _templateSelectedCols[c.key];
+        const disabled = c.required;
+        return '<label class="imp-col-item' + (disabled ? ' imp-col-item-locked' : '') + (checked ? ' imp-col-item-checked' : '') + '" ' +
+          (disabled ? 'title="Mandatory — cannot be removed"' : '') + '>' +
+          '<input type="checkbox" ' + (checked ? 'checked' : '') + ' ' + (disabled ? 'disabled' : '') +
+            ' onchange="_templateToggleCol(\'' + c.key + '\', this.checked)" />' +
+          '<span class="imp-col-item-name">' + c.label + '</span>' +
+          (disabled
+            ? '<span class="imp-col-item-badge imp-col-item-badge-req">Required</span>'
+            : '<span class="imp-col-item-badge imp-col-item-badge-opt">Optional</span>') +
+        '</label>';
+      }).join("") +
+    '</div>';
+}
+
+function _templateToggleCol(key, checked) {
+  _templateSelectedCols[key] = checked;
+  // Update count badge
+  const count = IMPORT_COLUMNS.filter(function(c){ return _templateSelectedCols[c.key]; }).length;
+  const countEl = document.getElementById("impColCount");
+  if (countEl) countEl.textContent = count + ' / ' + IMPORT_COLUMNS.length + ' columns';
+  // Re-style the label
+  _renderColumnsList();
+}
+
+function _templateSelectAll(select) {
+  IMPORT_COLUMNS.forEach(function(c) {
+    if (!c.required) _templateSelectedCols[c.key] = select;
+  });
+  _renderColumnsList();
 }
 
 /* ── Download template (generates a real XLSX via SheetJS) ── */
 function downloadTemplate() {
-  /* Build header row and one sample data row */
-  const headers = IMPORT_COLUMNS.map(function(c) { return c.label; });
-  const sample  = [
-    "EMP008","Rahul","Verma","Male","1995-06-20","Single","O+",
-    "rahul.verma@abcltd.com","9988776655","123 MG Road, Mumbai",
-    "123 MG Road, Mumbai","Sunita Verma (Mother) - 9988700000",
-    "IT","Developer","2025-07-01","Full-Time","Active",
-    "Arindam Maity","Mumbai","750000",
-    "ABCDE1234F","123456789012","100123456789","123456789012","SBIN0001234"
-  ];
-  const instructionRow = IMPORT_COLUMNS.map(function(c) {
-    return c.required ? "REQUIRED" : "Optional";
-  });
+  // Build column list from selection (required always included)
+  const selectedCols = _templateSelectedCols
+    ? IMPORT_COLUMNS.filter(function(c){ return _templateSelectedCols[c.key]; })
+    : IMPORT_COLUMNS;
+
+  if (!selectedCols.length) {
+    showToast("Please select at least one column.", "error");
+    return;
+  }
+
+  // Full sample data map
+  const SAMPLE_MAP = {
+    empCode:"EMP008", firstName:"Rahul", lastName:"Verma", gender:"Male",
+    dob:"1995-06-20", marital:"Single", blood:"O+",
+    email:"rahul.verma@abcltd.com", mobile:"9988776655",
+    currentAddr:"123 MG Road, Mumbai", permAddr:"123 MG Road, Mumbai",
+    emergency:"Sunita Verma (Mother) - 9988700000",
+    dept:"IT", desig:"Developer", doj:"2025-07-01",
+    empType:"Full-Time", status:"Active", manager:"Arindam Maity",
+    location:"Mumbai", ctc:"750000",
+    pan:"ABCDE1234F", aadhaar:"123456789012", uan:"100123456789",
+    bank:"123456789012", ifsc:"SBIN0001234"
+  };
+
+  const headers        = selectedCols.map(function(c) { return c.label; });
+  const instructionRow = selectedCols.map(function(c) { return c.required ? "REQUIRED" : "Optional"; });
+  const sample         = selectedCols.map(function(c) { return SAMPLE_MAP[c.key] || ""; });
 
   /* Use SheetJS if available, else fall back to CSV */
   if (window.XLSX) {
@@ -1883,13 +1951,11 @@ function downloadTemplate() {
       sample
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    /* Style header row (row index 3, 0-based) */
     ws["!cols"] = headers.map(function() { return { wch: 22 }; });
     ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:headers.length-1} }];
     XLSX.utils.book_append_sheet(wb, ws, "Employees");
     XLSX.writeFile(wb, "PayNest_Employee_Import_Template.xlsx");
   } else {
-    /* Fallback CSV download */
     const csv = [headers, sample].map(function(r) {
       return r.map(function(v) { return '"' + (v||"") + '"'; }).join(",");
     }).join("\n");
@@ -1899,7 +1965,7 @@ function downloadTemplate() {
     a.href = url; a.download = "PayNest_Employee_Import_Template.csv"; a.click();
     URL.revokeObjectURL(url);
   }
-  showToast("Template downloaded!", "success");
+  showToast("Template downloaded with " + selectedCols.length + " columns!", "success");
 }
 
 /* ── File handling ── */
@@ -2176,21 +2242,169 @@ function _doImport() {
 }
 
 /* ══════════════════════════════
-   EXPORT
+   EXPORT — Column Picker Modal
 ══════════════════════════════ */
+
+// All exportable columns (superset — includes all employee fields)
+const EXPORT_COLUMNS = [
+  { key:"empCode",     label:"Emp Code",            group:"Basic"      },
+  { key:"firstName",   label:"First Name",           group:"Basic"      },
+  { key:"lastName",    label:"Last Name",            group:"Basic"      },
+  { key:"gender",      label:"Gender",               group:"Personal"   },
+  { key:"dob",         label:"Date of Birth",        group:"Personal"   },
+  { key:"marital",     label:"Marital Status",       group:"Personal"   },
+  { key:"blood",       label:"Blood Group",          group:"Personal"   },
+  { key:"email",       label:"Email",                group:"Contact"    },
+  { key:"mobile",      label:"Mobile",               group:"Contact"    },
+  { key:"currentAddr", label:"Current Address",      group:"Contact"    },
+  { key:"permAddr",    label:"Permanent Address",    group:"Contact"    },
+  { key:"emergency",   label:"Emergency Contact",    group:"Contact"    },
+  { key:"dept",        label:"Department",           group:"Employment" },
+  { key:"desig",       label:"Designation",          group:"Employment" },
+  { key:"doj",         label:"Date of Joining",      group:"Employment" },
+  { key:"empType",     label:"Employment Type",      group:"Employment" },
+  { key:"status",      label:"Status",               group:"Employment" },
+  { key:"manager",     label:"Reporting Manager",    group:"Employment" },
+  { key:"location",    label:"Location",             group:"Employment" },
+  { key:"ctc",         label:"CTC (Annual)",         group:"Employment" },
+  { key:"pan",         label:"PAN Number",           group:"Statutory"  },
+  { key:"aadhaar",     label:"Aadhaar Number",       group:"Statutory"  },
+  { key:"uan",         label:"UAN Number",           group:"Statutory"  },
+  { key:"esi",         label:"ESI Number",           group:"Statutory"  },
+  { key:"bank",        label:"Bank Account",         group:"Statutory"  },
+  { key:"ifsc",        label:"IFSC Code",            group:"Statutory"  },
+];
+
+let _exportSelectedCols = null; // initialised when modal opens
+
 function exportEmployees() {
-  const emps    = getEmployees();
-  const headers = ["Emp ID","Name","Department","Designation","DOJ","Status","Email","Mobile"];
-  const rows    = emps.map(e => [
-    e.empCode||e.id, e.firstName+" "+e.lastName,
-    e.dept,e.desig, e.doj?formatDisplayDate(e.doj):"", e.status,e.email,e.mobile
-  ]);
-  const csv  = [headers,...rows].map(r => r.map(v => '"'+(v||"")+'"').join(",")).join("\n");
-  const blob = new Blob([csv], { type:"text/csv" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a"); a.href=url; a.download="employees.csv"; a.click();
-  URL.revokeObjectURL(url);
-  showToast("Exported successfully!", "success");
+  // Open column picker modal instead of direct download
+  _openExportModal();
+}
+
+function _openExportModal() {
+  // Default: select basic + employment columns
+  _exportSelectedCols = {};
+  EXPORT_COLUMNS.forEach(function(c) {
+    _exportSelectedCols[c.key] = ["Basic","Employment"].includes(c.group);
+  });
+  _renderExportModal();
+  document.getElementById("exportModal").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeExportModal() {
+  document.getElementById("exportModal").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function _renderExportModal() {
+  const el = document.getElementById("exportColGrid");
+  if (!el) return;
+
+  const groups = [...new Set(EXPORT_COLUMNS.map(function(c){ return c.group; }))];
+  const selectedCount = EXPORT_COLUMNS.filter(function(c){ return _exportSelectedCols[c.key]; }).length;
+  const countEl = document.getElementById("exportColCount");
+  if (countEl) countEl.textContent = selectedCount + " / " + EXPORT_COLUMNS.length + " columns selected";
+
+  el.innerHTML = groups.map(function(group) {
+    const cols = EXPORT_COLUMNS.filter(function(c){ return c.group === group; });
+    const allChecked = cols.every(function(c){ return _exportSelectedCols[c.key]; });
+    const someChecked = cols.some(function(c){ return _exportSelectedCols[c.key]; });
+    return '<div class="exp-col-group">' +
+      '<div class="exp-col-group-header">' +
+        '<label class="exp-col-group-label">' +
+          '<input type="checkbox" ' + (allChecked ? 'checked' : someChecked ? 'indeterminate' : '') +
+            ' onchange="_exportToggleGroup(\'' + group + '\', this.checked)" id="expGroup-' + group + '" />' +
+          '<span>' + group + '</span>' +
+        '</label>' +
+        '<span class="exp-col-group-count">' + cols.filter(function(c){ return _exportSelectedCols[c.key]; }).length + '/' + cols.length + '</span>' +
+      '</div>' +
+      '<div class="exp-col-items">' +
+        cols.map(function(c) {
+          return '<label class="exp-col-item' + (_exportSelectedCols[c.key] ? ' exp-col-item-checked' : '') + '">' +
+            '<input type="checkbox" ' + (_exportSelectedCols[c.key] ? 'checked' : '') +
+              ' onchange="_exportToggleCol(\'' + c.key + '\', this.checked)" />' +
+            '<span>' + c.label + '</span>' +
+          '</label>';
+        }).join("") +
+      '</div>' +
+    '</div>';
+  }).join("");
+
+  // Fix indeterminate state after render
+  groups.forEach(function(group) {
+    const cols = EXPORT_COLUMNS.filter(function(c){ return c.group === group; });
+    const allC = cols.every(function(c){ return _exportSelectedCols[c.key]; });
+    const someC = cols.some(function(c){ return _exportSelectedCols[c.key]; });
+    const el2 = document.getElementById("expGroup-" + group);
+    if (el2) el2.indeterminate = !allC && someC;
+  });
+}
+
+function _exportToggleCol(key, checked) {
+  _exportSelectedCols[key] = checked;
+  _renderExportModal();
+}
+
+function _exportToggleGroup(group, checked) {
+  EXPORT_COLUMNS.filter(function(c){ return c.group === group; }).forEach(function(c){
+    _exportSelectedCols[c.key] = checked;
+  });
+  _renderExportModal();
+}
+
+function _exportSelectAllCols(select) {
+  EXPORT_COLUMNS.forEach(function(c){ _exportSelectedCols[c.key] = select; });
+  _renderExportModal();
+}
+
+function _doExport() {
+  const selectedCols = EXPORT_COLUMNS.filter(function(c){ return _exportSelectedCols[c.key]; });
+  if (!selectedCols.length) {
+    showToast("Please select at least one column to export.", "error");
+    return;
+  }
+
+  const emps = getEmployees();
+  if (!emps.length) {
+    showToast("No employees to export.", "error");
+    return;
+  }
+
+  const headers = selectedCols.map(function(c){ return c.label; });
+  const rows = emps.map(function(e) {
+    return selectedCols.map(function(c) {
+      var val = e[c.key] || "";
+      // Format dates
+      if ((c.key === "dob" || c.key === "doj") && val) val = formatDisplayDate(val);
+      // Format CTC
+      if (c.key === "ctc" && val) val = val;
+      // Full name handling (firstName/lastName exported individually here)
+      return val;
+    });
+  });
+
+  if (window.XLSX) {
+    const wb = XLSX.utils.book_new();
+    const wsData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws["!cols"] = headers.map(function(){ return { wch: 20 }; });
+    XLSX.utils.book_append_sheet(wb, ws, "Employees");
+    XLSX.writeFile(wb, "PayNest_Employees_Export.xlsx");
+  } else {
+    const csv = [headers, ...rows].map(function(r){
+      return r.map(function(v){ return '"' + String(v||"").replace(/"/g,'""') + '"'; }).join(",");
+    }).join("\n");
+    const blob = new Blob([csv], { type:"text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "PayNest_Employees_Export.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  closeExportModal();
+  showToast(emps.length + " employees exported with " + selectedCols.length + " columns!", "success");
 }
 
 /* ══════════════════════════════
