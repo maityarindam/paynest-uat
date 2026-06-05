@@ -1259,15 +1259,19 @@ function selectProfSearch(id) {
 }
 
 /* ══════════════════════════════
-   ORG TREE  — SVG connector approach
-   Connectors are drawn AFTER layout via SVG overlays,
-   so they never collide with the cards.
+   ORG TREE  — SVG connector approach with arrowheads
+   Connectors drawn after layout; arrowheads point down
+   toward each child card. Multiple roots shown side-by-side.
 ══════════════════════════════ */
 function renderOrgTree() {
   var wrap = document.getElementById("orgTreeWrap");
   if (!wrap) return;
 
   var emps = getEmployees();
+  if (!emps.length) {
+    wrap.innerHTML = '<div style="padding:60px;text-align:center;color:var(--muted);font-size:14px;">No employees to display.</div>';
+    return;
+  }
 
   var levelColors = [
     { avatar:"#7C3AED", desig:"#7C3AED", badge:"rgba(124,58,237,.1)", badgeText:"#7C3AED" },
@@ -1277,19 +1281,22 @@ function renderOrgTree() {
   ];
   function lc(depth) { return levelColors[Math.min(depth, levelColors.length - 1)]; }
 
-  var LINE_COLOR = "#CBD5E1";
-  var VERT_GAP   = 48;   /* vertical space between card bottom and children top — enough for the line */
-  var COL_PAD    = 28;   /* horizontal padding around each child column */
+  var isDark     = document.body.classList.contains("dark-mode");
+  var LINE_COLOR = isDark ? "#4B5563" : "#CBD5E1";
+  var ARROW_COLOR= isDark ? "#6B7280" : "#94A3B8";
+  var VERT_GAP   = 56;  /* space between card bottom and children top */
+  var ARROW_SIZE = 7;   /* arrowhead size in px */
 
   var allNames = emps.map(function (e) {
     return (e.firstName + " " + e.lastName).toLowerCase();
   });
 
+  /* Find root employees (no manager, or manager not found in list) */
   var roots = emps.filter(function (e) {
     return !e.manager || !e.manager.trim() || !allNames.includes(e.manager.toLowerCase());
   });
 
-  /* Build a card's inner HTML */
+  /* Build card inner HTML */
   function cardInner(emp, depth) {
     var c  = lc(depth);
     var av = emp.photo
@@ -1303,135 +1310,148 @@ function renderOrgTree() {
       '</div>';
   }
 
-  /* Recursively build DOM node; returns the .org-node-wrap element */
+  /* SVG helper: draw a line */
+  function svgLine(svg, x1, y1, x2, y2, color, w) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    el.setAttribute("x1", x1); el.setAttribute("y1", y1);
+    el.setAttribute("x2", x2); el.setAttribute("y2", y2);
+    el.setAttribute("stroke", color);
+    el.setAttribute("stroke-width", w || "2");
+    el.setAttribute("stroke-linecap", "round");
+    svg.appendChild(el);
+  }
+
+  /* SVG helper: draw downward arrowhead at (cx, cy) */
+  function svgArrow(svg, cx, cy, color) {
+    var s = ARROW_SIZE;
+    var pts = (cx - s) + "," + (cy - s) + " " + cx + "," + cy + " " + (cx + s) + "," + (cy - s);
+    var el = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    el.setAttribute("points", pts);
+    el.setAttribute("fill", "none");
+    el.setAttribute("stroke", color);
+    el.setAttribute("stroke-width", "2");
+    el.setAttribute("stroke-linecap", "round");
+    el.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(el);
+  }
+
+  /* Recursively build a node DOM element */
   function buildNode(emp, depth) {
     var reports = emps.filter(function (e) {
       return e.manager && e.manager.toLowerCase() === (emp.firstName + ' ' + emp.lastName).toLowerCase();
     });
 
-    /* Wrapper */
-    var wrap = document.createElement("div");
-    wrap.className = "org-node-wrap" + (depth === 0 ? " org-root" : "");
+    var nodeWrap = document.createElement("div");
+    nodeWrap.className = "org-node-wrap" + (depth === 0 ? " org-root" : "");
 
-    /* Card */
     var card = document.createElement("div");
     card.className = "org-node-card";
     card.innerHTML = cardInner(emp, depth);
     card.addEventListener("click", function () { viewProfile(emp.id); });
-    wrap.appendChild(card);
+    nodeWrap.appendChild(card);
 
-    if (reports.length === 0) return wrap;
+    if (!reports.length) return nodeWrap;
 
-    /* ── SVG connector: vertical stem down from this card ── */
-    /* We'll draw it as an inline SVG that sits BETWEEN the card and the children row.
-       Height = VERT_GAP, width = full children row width (set after layout via JS post-pass). */
+    /* SVG connector gap */
+    var svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgEl.classList.add("org-connector-svg");
+    svgEl.setAttribute("height", String(VERT_GAP));
+    svgEl.setAttribute("overflow", "visible");
+    svgEl.style.cssText = "width:100%;display:block;flex-shrink:0;overflow:visible;";
 
     /* Children row */
     var childRow = document.createElement("div");
     childRow.className = "org-children-row";
 
-    var childNodes = reports.map(function (child) {
+    var childCols = reports.map(function (child) {
       var col = document.createElement("div");
       col.className = "org-child-col";
       col.appendChild(buildNode(child, depth + 1));
       return col;
     });
-    childNodes.forEach(function (col) { childRow.appendChild(col); });
+    childCols.forEach(function (col) { childRow.appendChild(col); });
 
-    /* SVG placeholder — we size & draw it after DOM insertion */
-    var svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svgEl.classList.add("org-connector-svg");
-    svgEl.setAttribute("height", String(VERT_GAP));
-    svgEl.style.width = "100%";
+    nodeWrap.appendChild(svgEl);
+    nodeWrap.appendChild(childRow);
 
-    wrap.appendChild(svgEl);
-    wrap.appendChild(childRow);
-
-    /* Schedule connector drawing after browser has laid out the DOM */
+    /* Draw connectors after layout is complete */
     requestAnimationFrame(function () {
-      drawConnectors(svgEl, card, childNodes, childRow, VERT_GAP, LINE_COLOR);
+      setTimeout(function () {
+        drawConnectors(svgEl, card, childCols);
+      }, 0);
     });
 
-    return wrap;
+    return nodeWrap;
   }
 
-  /* Draw the connector lines for one parent→children group */
-  function drawConnectors(svgEl, parentCard, childCols, childRow, vertGap, color) {
-    /* Measure everything relative to the SVG element */
+  /* Draw connectors for one parent → children group */
+  function drawConnectors(svgEl, parentCard, childCols) {
     var svgRect    = svgEl.getBoundingClientRect();
     var parentRect = parentCard.getBoundingClientRect();
 
-    if (svgRect.width === 0) return; /* not yet visible */
+    if (svgRect.width < 1) return;
 
-    /* Parent mid-x relative to SVG */
-    var parentMid = parentRect.left + parentRect.width / 2 - svgRect.left;
-
-    /* Vertical stem: from top of SVG (= bottom of card) down to mid-point */
-    var stemY = vertGap / 2;
-
-    /* Collect children mid-x positions */
-    var childMids = childCols.map(function (col) {
-      var r = col.getBoundingClientRect();
-      return r.left + r.width / 2 - svgRect.left;
-    });
-
-    var strokeW = "2";
-
-    /* Clear any previous drawing */
     while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
 
-    /* Vertical stem down from parent mid */
-    var vStem = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    vStem.setAttribute("x1", parentMid); vStem.setAttribute("y1", 0);
-    vStem.setAttribute("x2", parentMid); vStem.setAttribute("y2", stemY);
-    vStem.setAttribute("stroke", color); vStem.setAttribute("stroke-width", strokeW);
-    svgEl.appendChild(vStem);
+    var parentMid = parentRect.left + parentRect.width / 2 - svgRect.left;
+    var stemY     = Math.round(VERT_GAP / 2);
+
+    var childMids = childCols.map(function (col) {
+      var r = col.getBoundingClientRect();
+      return Math.round(r.left + r.width / 2 - svgRect.left);
+    });
+
+    /* Vertical stem from parent down to horizontal bar */
+    svgLine(svgEl, parentMid, 0, parentMid, stemY, LINE_COLOR);
 
     if (childMids.length === 1) {
-      /* Single child — just extend the vertical line */
-      var ext = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      ext.setAttribute("x1", childMids[0]); ext.setAttribute("y1", stemY);
-      ext.setAttribute("x2", childMids[0]); ext.setAttribute("y2", vertGap);
-      ext.setAttribute("stroke", color); ext.setAttribute("stroke-width", strokeW);
-      svgEl.appendChild(ext);
+      /* Single child: extend stem straight down */
+      svgLine(svgEl, childMids[0], stemY, childMids[0], VERT_GAP, LINE_COLOR);
+      svgArrow(svgEl, childMids[0], VERT_GAP, ARROW_COLOR);
     } else {
-      /* Horizontal bar across children */
+      /* Horizontal bar across all children */
       var leftX  = Math.min.apply(null, childMids);
       var rightX = Math.max.apply(null, childMids);
+      svgLine(svgEl, leftX, stemY, rightX, stemY, LINE_COLOR);
 
-      var hBar = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      hBar.setAttribute("x1", leftX);  hBar.setAttribute("y1", stemY);
-      hBar.setAttribute("x2", rightX); hBar.setAttribute("y2", stemY);
-      hBar.setAttribute("stroke", color); hBar.setAttribute("stroke-width", strokeW);
-      svgEl.appendChild(hBar);
-
-      /* Vertical drops to each child */
+      /* Vertical drops with arrowheads */
       childMids.forEach(function (mx) {
-        var vDrop = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        vDrop.setAttribute("x1", mx); vDrop.setAttribute("y1", stemY);
-        vDrop.setAttribute("x2", mx); vDrop.setAttribute("y2", vertGap);
-        vDrop.setAttribute("stroke", color); vDrop.setAttribute("stroke-width", strokeW);
-        svgEl.appendChild(vDrop);
+        svgLine(svgEl, mx, stemY, mx, VERT_GAP, LINE_COLOR);
+        svgArrow(svgEl, mx, VERT_GAP, ARROW_COLOR);
       });
     }
   }
 
-  /* Build tree and insert */
+  /* Build the container — multiple roots go side-by-side */
   var container = document.createElement("div");
   container.className = "org-tree-root";
-  roots.forEach(function (r) { container.appendChild(buildNode(r, 0)); });
+
+  if (roots.length > 1) {
+    /* Wrap multiple roots in a horizontal row */
+    var rootRow = document.createElement("div");
+    rootRow.style.cssText = "display:flex;flex-direction:row;align-items:flex-start;gap:40px;";
+    roots.forEach(function (r) { rootRow.appendChild(buildNode(r, 0)); });
+    container.appendChild(rootRow);
+  } else if (roots.length === 1) {
+    container.appendChild(buildNode(roots[0], 0));
+  } else {
+    /* Fallback: show all employees as roots if hierarchy is broken */
+    emps.forEach(function (e) { container.appendChild(buildNode(e, 0)); });
+  }
 
   wrap.innerHTML = "";
   wrap.style.overflow = "auto";
-  wrap.style.padding  = "12px 0";
+  wrap.style.padding  = "24px 16px";
   wrap.appendChild(container);
 
-  /* Re-draw connectors on window resize */
+  /* Redraw on resize */
   var resizeTimer;
-  window.addEventListener("resize", function () {
+  wrap._orgResizeHandler && window.removeEventListener("resize", wrap._orgResizeHandler);
+  wrap._orgResizeHandler = function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { renderOrgTree(); }, 200);
-  });
+    resizeTimer = setTimeout(function () { renderOrgTree(); }, 220);
+  };
+  window.addEventListener("resize", wrap._orgResizeHandler);
 }
 
 /* ══════════════════════════════
@@ -1442,18 +1462,16 @@ function renderOrgTree() {
    excludeId: employee being edited (excluded from manager list)
 ══════════════════════════════ */
 function populateDrawerDropdowns(excludeId) {
-  populateMasterSelect("df-gender",  "gender",  "Select gender");
-  populateMasterSelect("df-marital", "marital", "Select");
-  populateMasterSelect("df-blood",   "blood",   "Select");
-  populateMasterSelect("df-dept",    "department", "Select department");
-  populateMasterSelect("df-empType", "empType", "Select type");
-  populateMasterSelect("df-status",  "status",  "Select status");
+  populateMasterSelect("df-gender",   "gender",      "Select gender");
+  populateMasterSelect("df-marital",  "marital",     "Select marital status");
+  populateMasterSelect("df-blood",    "blood",       "Select blood group");
+  populateMasterSelect("df-dept",     "department",  "Select department");
+  populateMasterSelect("df-empType",  "empType",     "Select type");
+  populateMasterSelect("df-status",   "status",      "Select status");
+  populateMasterSelect("df-location", "location",    "Select location");
 
   /* Designation is a free-text input, but populate its datalist */
   populateDesigDatalist();
-
-  /* Location datalist */
-  populateLocationDatalist();
 
   /* Reporting Manager — employee picker */
   initManagerPicker(excludeId);
@@ -1463,13 +1481,6 @@ function populateDesigDatalist() {
   var dl = document.getElementById("df-desig-list");
   if (!dl) return;
   var vals = getMasterValues("designation");
-  dl.innerHTML = vals.map(function(v){ return '<option value="'+v+'">'; }).join("");
-}
-
-function populateLocationDatalist() {
-  var dl = document.getElementById("df-location-list");
-  if (!dl) return;
-  var vals = getMasterValues("location");
   dl.innerHTML = vals.map(function(v){ return '<option value="'+v+'">'; }).join("");
 }
 

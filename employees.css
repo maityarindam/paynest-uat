@@ -713,7 +713,7 @@
 .dform-group input,
 .dform-group select {
   padding: 9px 12px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-family: var(--font);
@@ -721,13 +721,27 @@
   background: var(--white);
   outline: none;
   transition: border-color .18s, box-shadow .18s;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+}
+.dform-group select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  cursor: pointer;
 }
 .dform-group input:focus,
 .dform-group select:focus {
   border-color: var(--primary-light);
   box-shadow: 0 0 0 3px rgba(124,58,237,.08);
 }
-.dform-group input.error-field { border-color: var(--danger); }
+.dform-group input.error-field,
+.dform-group select.error-field {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(239,68,68,.08);
+}
 .req { color: var(--danger); }
 
 /* Doc upload */

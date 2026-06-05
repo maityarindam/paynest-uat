@@ -432,3 +432,54 @@ body.dark-mode .master-tab-btn.active .mt-count { background: rgba(124,58,237,.2
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ══════════════════════════════
+   MASTER MODAL ACTION BUTTONS
+══════════════════════════════ */
+.master-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  border: none;
+  cursor: pointer;
+  transition: background .18s, transform .12s, box-shadow .18s;
+  letter-spacing: .1px;
+}
+.master-btn:active { transform: scale(.97); }
+
+.master-btn-save {
+  background: #10B981;
+  color: white;
+  box-shadow: 0 2px 8px rgba(16,185,129,.25);
+}
+.master-btn-save:hover {
+  background: #059669;
+  box-shadow: 0 4px 14px rgba(16,185,129,.35);
+}
+
+.master-btn-cancel {
+  background: rgba(239,68,68,.1);
+  color: #EF4444;
+  border: 1.5px solid rgba(239,68,68,.2);
+}
+.master-btn-cancel:hover {
+  background: #EF4444;
+  color: white;
+  border-color: #EF4444;
+  box-shadow: 0 4px 14px rgba(239,68,68,.25);
+}
+
+/* Dark mode */
+body.dark-mode .master-btn-cancel {
+  background: rgba(239,68,68,.12);
+  border-color: rgba(239,68,68,.25);
+}
+body.dark-mode .master-btn-cancel:hover {
+  background: #EF4444;
+  color: white;
+}
