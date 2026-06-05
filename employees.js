@@ -1323,17 +1323,14 @@ function renderOrgTree() {
 
   /* SVG helper: draw downward arrowhead at (cx, cy) */
   function svgArrow(svg, cx, cy, color) {
-    var s = ARROW_SIZE;
-    var pts = (cx - s) + "," + (cy - s) + " " + cx + "," + cy + " " + (cx + s) + "," + (cy - s);
-    var el = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    el.setAttribute("points", pts);
-    el.setAttribute("fill", "none");
-    el.setAttribute("stroke", color);
-    el.setAttribute("stroke-width", "2");
-    el.setAttribute("stroke-linecap", "round");
-    el.setAttribute("stroke-linejoin", "round");
-    svg.appendChild(el);
-  }
+  var s = ARROW_SIZE;
+  var pts = (cx - s) + "," + (cy - s) + " " + cx + "," + cy + " " + (cx + s) + "," + (cy - s);
+  var el = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  el.setAttribute("points", pts);
+  el.setAttribute("fill", color);
+  el.setAttribute("stroke", "none");
+  svg.appendChild(el);
+}
 
   /* Recursively build a node DOM element */
   function buildNode(emp, depth) {
