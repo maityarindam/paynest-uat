@@ -2247,7 +2247,7 @@ function _doImport() {
 
 // All exportable columns (superset — includes all employee fields)
 const EXPORT_COLUMNS = [
-  { key:"empCode",     label:"Emp Code",            group:"Basic"      },
+  { key:"empCode",     label:"Emp Code",            group:"Basic",      locked:true },
   { key:"firstName",   label:"First Name",           group:"Basic"      },
   { key:"lastName",    label:"Last Name",            group:"Basic"      },
   { key:"gender",      label:"Gender",               group:"Personal"   },
@@ -2309,23 +2309,33 @@ function _renderExportModal() {
 
   el.innerHTML = groups.map(function(group) {
     const cols = EXPORT_COLUMNS.filter(function(c){ return c.group === group; });
+    // For group header checkbox: only consider non-locked columns
+    const freeCols = cols.filter(function(c){ return !c.locked; });
     const allChecked = cols.every(function(c){ return _exportSelectedCols[c.key]; });
     const someChecked = cols.some(function(c){ return _exportSelectedCols[c.key]; });
+    // Group checkbox disabled if all cols in group are locked
+    const groupDisabled = freeCols.length === 0;
     return '<div class="exp-col-group">' +
       '<div class="exp-col-group-header">' +
         '<label class="exp-col-group-label">' +
           '<input type="checkbox" ' + (allChecked ? 'checked' : someChecked ? 'indeterminate' : '') +
-            ' onchange="_exportToggleGroup(\'' + group + '\', this.checked)" id="expGroup-' + group + '" />' +
+            (groupDisabled ? ' disabled' : ' onchange="_exportToggleGroup(\'' + group + '\', this.checked)"') +
+            ' id="expGroup-' + group + '" />' +
           '<span>' + group + '</span>' +
         '</label>' +
         '<span class="exp-col-group-count">' + cols.filter(function(c){ return _exportSelectedCols[c.key]; }).length + '/' + cols.length + '</span>' +
       '</div>' +
       '<div class="exp-col-items">' +
         cols.map(function(c) {
-          return '<label class="exp-col-item' + (_exportSelectedCols[c.key] ? ' exp-col-item-checked' : '') + '">' +
+          const isLocked = !!c.locked;
+          return '<label class="exp-col-item' +
+            (_exportSelectedCols[c.key] ? ' exp-col-item-checked' : '') +
+            (isLocked ? ' exp-col-item-locked' : '') + '"' +
+            (isLocked ? ' title="Emp Code is always included in the export"' : '') + '>' +
             '<input type="checkbox" ' + (_exportSelectedCols[c.key] ? 'checked' : '') +
-              ' onchange="_exportToggleCol(\'' + c.key + '\', this.checked)" />' +
+              (isLocked ? ' disabled' : ' onchange="_exportToggleCol(\'' + c.key + '\', this.checked)"') + ' />' +
             '<span>' + c.label + '</span>' +
+            (isLocked ? '<span class="exp-col-fixed-badge">Fixed</span>' : '') +
           '</label>';
         }).join("") +
       '</div>' +
@@ -2343,19 +2353,23 @@ function _renderExportModal() {
 }
 
 function _exportToggleCol(key, checked) {
+  const col = EXPORT_COLUMNS.find(function(c){ return c.key === key; });
+  if (col && col.locked) return; // cannot deselect locked columns
   _exportSelectedCols[key] = checked;
   _renderExportModal();
 }
 
 function _exportToggleGroup(group, checked) {
-  EXPORT_COLUMNS.filter(function(c){ return c.group === group; }).forEach(function(c){
+  EXPORT_COLUMNS.filter(function(c){ return c.group === group && !c.locked; }).forEach(function(c){
     _exportSelectedCols[c.key] = checked;
   });
   _renderExportModal();
 }
 
 function _exportSelectAllCols(select) {
-  EXPORT_COLUMNS.forEach(function(c){ _exportSelectedCols[c.key] = select; });
+  EXPORT_COLUMNS.forEach(function(c){
+    if (!c.locked) _exportSelectedCols[c.key] = select; // locked columns always stay selected
+  });
   _renderExportModal();
 }
 
