@@ -474,6 +474,16 @@ body.dark-mode .master-tab-btn.active .mt-count { background: rgba(124,58,237,.2
   box-shadow: 0 4px 14px rgba(239,68,68,.25);
 }
 
+.master-btn-delete {
+  background: #EF4444;
+  color: white;
+  box-shadow: 0 2px 8px rgba(239,68,68,.25);
+}
+.master-btn-delete:hover {
+  background: #DC2626;
+  box-shadow: 0 4px 14px rgba(239,68,68,.4);
+}
+
 /* Dark mode */
 body.dark-mode .master-btn-cancel {
   background: rgba(239,68,68,.12);
@@ -482,4 +492,11 @@ body.dark-mode .master-btn-cancel {
 body.dark-mode .master-btn-cancel:hover {
   background: #EF4444;
   color: white;
+}
+body.dark-mode .master-btn-delete {
+  background: #EF4444;
+  color: white;
+}
+body.dark-mode .master-btn-delete:hover {
+  background: #DC2626;
 }

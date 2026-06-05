@@ -230,8 +230,14 @@
     <div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:8px;">Delete Value?</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">This will permanently remove <strong id="masterDeleteName"></strong> from the master list.</div>
     <div style="display:flex;gap:10px;justify-content:center;">
-      <button class="dir-btn dir-btn-outline" onclick="closeMasterDeleteModal()">Cancel</button>
-      <button class="dir-btn" style="background:#EF4444;color:white;" onclick="confirmMasterDelete()">Yes, Delete</button>
+      <button class="master-btn master-btn-cancel" onclick="closeMasterDeleteModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancel
+      </button>
+      <button class="master-btn master-btn-delete" onclick="confirmMasterDelete()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Yes, Delete
+      </button>
     </div>
   </div>
 </div>
