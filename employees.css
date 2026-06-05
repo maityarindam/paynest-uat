@@ -1268,6 +1268,18 @@ body.dark-mode .mgr-clear-btn { background: #2D2B3D; }
 /* ══════════════════════════════
    IMPORT MODAL
 ══════════════════════════════ */
+.import-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  padding: 20px;
+}
+
 .import-modal-box {
   background: var(--white);
   border-radius: var(--radius-lg);

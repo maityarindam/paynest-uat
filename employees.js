@@ -1835,7 +1835,7 @@ function openImportModal() {
   const fi = document.getElementById("importFileInput");
   if (fi) fi.value = "";
   document.getElementById("importFileChosen").style.display = "none";
-  document.getElementById("importDropZone").style.display   = "";
+  document.getElementById("importDropZone").style.display   = "flex";
   document.getElementById("importModal").style.display      = "flex";
   document.body.style.overflow = "hidden";
 }
@@ -1918,7 +1918,7 @@ function removeImportFile() {
   const fi = document.getElementById("importFileInput");
   if (fi) fi.value = "";
   document.getElementById("importFileChosen").style.display = "none";
-  document.getElementById("importDropZone").style.display   = "";
+  document.getElementById("importDropZone").style.display   = "flex";
 }
 
 function _processImportFile(file) {
