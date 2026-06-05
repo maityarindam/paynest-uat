@@ -1321,16 +1321,16 @@ function renderOrgTree() {
     svg.appendChild(el);
   }
 
-  /* SVG helper: draw downward arrowhead at (cx, cy) */
+  /* SVG helper: draw downward filled arrowhead at (cx, cy) */
   function svgArrow(svg, cx, cy, color) {
-  var s = ARROW_SIZE;
-  var pts = (cx - s) + "," + (cy - s) + " " + cx + "," + cy + " " + (cx + s) + "," + (cy - s);
-  var el = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  el.setAttribute("points", pts);
-  el.setAttribute("fill", color);
-  el.setAttribute("stroke", "none");
-  svg.appendChild(el);
-}
+    var s = ARROW_SIZE;
+    var pts = (cx - s) + "," + (cy - s) + " " + cx + "," + cy + " " + (cx + s) + "," + (cy - s);
+    var el = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    el.setAttribute("points", pts);
+    el.setAttribute("fill", color);
+    el.setAttribute("stroke", "none");
+    svg.appendChild(el);
+  }
 
   /* Recursively build a node DOM element */
   function buildNode(emp, depth) {
@@ -1787,6 +1787,395 @@ function confirmDelete() {
 }
 
 /* ══════════════════════════════
+   IMPORT — TEMPLATE COLUMNS
+══════════════════════════════ */
+const IMPORT_COLUMNS = [
+  { key:"empCode",     label:"Emp Code",         required:true  },
+  { key:"firstName",   label:"First Name",        required:true  },
+  { key:"lastName",    label:"Last Name",         required:true  },
+  { key:"gender",      label:"Gender",            required:true  },
+  { key:"dob",         label:"Date of Birth",     required:true  },
+  { key:"marital",     label:"Marital Status",    required:false },
+  { key:"blood",       label:"Blood Group",       required:false },
+  { key:"email",       label:"Email",             required:true  },
+  { key:"mobile",      label:"Mobile",            required:true  },
+  { key:"currentAddr", label:"Current Address",   required:false },
+  { key:"permAddr",    label:"Permanent Address", required:false },
+  { key:"emergency",   label:"Emergency Contact", required:false },
+  { key:"dept",        label:"Department",        required:true  },
+  { key:"desig",       label:"Designation",       required:true  },
+  { key:"doj",         label:"Date of Joining",   required:true  },
+  { key:"empType",     label:"Employment Type",   required:false },
+  { key:"status",      label:"Status",            required:false },
+  { key:"manager",     label:"Reporting Manager", required:false },
+  { key:"location",    label:"Location",          required:false },
+  { key:"ctc",         label:"CTC (Annual)",      required:false },
+  { key:"pan",         label:"PAN Number",        required:false },
+  { key:"aadhaar",     label:"Aadhaar Number",    required:false },
+  { key:"uan",         label:"UAN Number",        required:false },
+  { key:"bank",        label:"Bank Account",      required:false },
+  { key:"ifsc",        label:"IFSC Code",         required:false },
+];
+
+/* ── State ── */
+let importStep       = 1;
+let importParsedRows = [];   // raw parsed objects from file
+let importValidRows  = [];   // validated employee objects
+let importErrorRows  = [];   // {row, errors[]}
+
+/* ── Open / Close ── */
+function openImportModal() {
+  importStep       = 1;
+  importParsedRows = [];
+  importValidRows  = [];
+  importErrorRows  = [];
+  _syncImportStepUI();
+  _renderColumnsList();
+  /* Reset file input */
+  const fi = document.getElementById("importFileInput");
+  if (fi) fi.value = "";
+  document.getElementById("importFileChosen").style.display = "none";
+  document.getElementById("importDropZone").style.display   = "";
+  document.getElementById("importModal").style.display      = "flex";
+  document.body.style.overflow = "hidden";
+}
+function closeImportModal() {
+  document.getElementById("importModal").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+/* ── Column list (step 1) ── */
+function _renderColumnsList() {
+  const el = document.getElementById("importColumnsList");
+  if (!el) return;
+  el.innerHTML = IMPORT_COLUMNS.map(function(c) {
+    return '<span class="import-col-tag ' + (c.required ? "required" : "") + '">' +
+      (c.required ? '<span class="import-col-req-dot"></span>' : "") +
+      c.label +
+    '</span>';
+  }).join("");
+}
+
+/* ── Download template (generates a real XLSX via SheetJS) ── */
+function downloadTemplate() {
+  /* Build header row and one sample data row */
+  const headers = IMPORT_COLUMNS.map(function(c) { return c.label; });
+  const sample  = [
+    "EMP008","Rahul","Verma","Male","1995-06-20","Single","O+",
+    "rahul.verma@abcltd.com","9988776655","123 MG Road, Mumbai",
+    "123 MG Road, Mumbai","Sunita Verma (Mother) - 9988700000",
+    "IT","Developer","2025-07-01","Full-Time","Active",
+    "Arindam Maity","Mumbai","750000",
+    "ABCDE1234F","123456789012","100123456789","123456789012","SBIN0001234"
+  ];
+  const instructionRow = IMPORT_COLUMNS.map(function(c) {
+    return c.required ? "REQUIRED" : "Optional";
+  });
+
+  /* Use SheetJS if available, else fall back to CSV */
+  if (window.XLSX) {
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+      ["PayNest Employee Import Template — Do NOT change column headers"],
+      [],
+      instructionRow,
+      headers,
+      sample
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    /* Style header row (row index 3, 0-based) */
+    ws["!cols"] = headers.map(function() { return { wch: 22 }; });
+    ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:headers.length-1} }];
+    XLSX.utils.book_append_sheet(wb, ws, "Employees");
+    XLSX.writeFile(wb, "PayNest_Employee_Import_Template.xlsx");
+  } else {
+    /* Fallback CSV download */
+    const csv = [headers, sample].map(function(r) {
+      return r.map(function(v) { return '"' + (v||"") + '"'; }).join(",");
+    }).join("\n");
+    const blob = new Blob([csv], { type:"text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "PayNest_Employee_Import_Template.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+  showToast("Template downloaded!", "success");
+}
+
+/* ── File handling ── */
+function handleImportDrop(event) {
+  event.preventDefault();
+  document.getElementById("importDropZone").classList.remove("dragover");
+  const file = event.dataTransfer.files[0];
+  if (file) _processImportFile(file);
+}
+function handleImportFile(input) {
+  const file = input.files[0];
+  if (file) _processImportFile(file);
+}
+function removeImportFile() {
+  importParsedRows = [];
+  const fi = document.getElementById("importFileInput");
+  if (fi) fi.value = "";
+  document.getElementById("importFileChosen").style.display = "none";
+  document.getElementById("importDropZone").style.display   = "";
+}
+
+function _processImportFile(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (!["xlsx","xls","csv"].includes(ext)) {
+    showToast("Unsupported file type. Use .xlsx, .xls or .csv", "error");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("File too large (max 5MB).", "error");
+    return;
+  }
+
+  document.getElementById("importDropZone").style.display   = "none";
+  document.getElementById("importFileChosen").style.display = "flex";
+  document.getElementById("importFileName").textContent     = file.name;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      if (ext === "csv") {
+        _parseCSV(e.target.result);
+      } else {
+        if (!window.XLSX) {
+          /* Dynamically load SheetJS if not already present */
+          const script = document.createElement("script");
+          script.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+          script.onload = function() { _parseXLSX(e.target.result); };
+          document.head.appendChild(script);
+        } else {
+          _parseXLSX(e.target.result);
+        }
+      }
+    } catch(err) {
+      showToast("Error reading file: " + err.message, "error");
+    }
+  };
+  if (ext === "csv") {
+    reader.readAsText(file);
+  } else {
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function _parseXLSX(arrayBuffer) {
+  const workbook  = XLSX.read(arrayBuffer, { type:"array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet     = workbook.Sheets[sheetName];
+  const rows      = XLSX.utils.sheet_to_json(sheet, { defval:"" });
+  _mapAndValidateRows(rows);
+}
+
+function _parseCSV(text) {
+  const lines   = text.trim().split(/\r?\n/);
+  if (lines.length < 2) { showToast("CSV is empty or has no data rows.", "error"); return; }
+  const headers = _splitCSVLine(lines[0]);
+  const rows    = [];
+  for (var i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const vals = _splitCSVLine(lines[i]);
+    const obj  = {};
+    headers.forEach(function(h, idx) { obj[h.trim()] = (vals[idx] || "").trim(); });
+    rows.push(obj);
+  }
+  _mapAndValidateRows(rows);
+}
+
+function _splitCSVLine(line) {
+  const result = []; let cur = ""; let inQ = false;
+  for (var i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === "," && !inQ) { result.push(cur); cur = ""; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result.map(function(s) { return s.replace(/^"|"$/g,"").trim(); });
+}
+
+/* Map spreadsheet columns → employee object keys */
+function _mapAndValidateRows(rawRows) {
+  /* Build a label→key map (case-insensitive) */
+  const labelToKey = {};
+  IMPORT_COLUMNS.forEach(function(c) {
+    labelToKey[c.label.toLowerCase()]     = c.key;
+    labelToKey[c.key.toLowerCase()]       = c.key;    // also accept key directly
+  });
+
+  importParsedRows = [];
+  importValidRows  = [];
+  importErrorRows  = [];
+
+  const existingEmps = getEmployees();
+  const existingCodes = existingEmps.map(function(e) { return (e.empCode||e.id).toLowerCase(); });
+  let nextIdNum = existingEmps.reduce(function(max, e) {
+    var n = parseInt((e.id||"").replace("EMP",""), 10);
+    return isNaN(n) ? max : Math.max(max, n);
+  }, existingEmps.length);
+
+  rawRows.forEach(function(raw, rowIdx) {
+    /* Normalise keys */
+    var emp = {};
+    Object.keys(raw).forEach(function(k) {
+      var mapped = labelToKey[k.toLowerCase().trim()];
+      if (mapped) emp[mapped] = String(raw[k]).trim();
+    });
+
+    /* Validate required fields */
+    var errors = [];
+    IMPORT_COLUMNS.forEach(function(c) {
+      if (c.required && !emp[c.key]) {
+        errors.push(c.label + " is required");
+      }
+    });
+
+    /* Check duplicate emp code */
+    if (emp.empCode && existingCodes.includes(emp.empCode.toLowerCase())) {
+      errors.push('Emp Code "' + emp.empCode + '" already exists');
+    }
+
+    /* Assign new ID */
+    nextIdNum++;
+    emp.id     = emp.empCode || ("EMP" + String(nextIdNum).padStart(3,"0"));
+    emp.status = emp.status || "Active";
+
+    if (errors.length) {
+      importErrorRows.push({ rowIdx: rowIdx + 1, emp: emp, errors: errors });
+    } else {
+      importValidRows.push(emp);
+    }
+    importParsedRows.push({ rowIdx: rowIdx + 1, emp: emp, errors: errors });
+  });
+}
+
+/* ── Navigation ── */
+function importStepNext() {
+  if (importStep === 1) {
+    importStep = 2;
+    _syncImportStepUI();
+    return;
+  }
+  if (importStep === 2) {
+    if (!importParsedRows.length) {
+      showToast("Please upload a file first.", "error");
+      return;
+    }
+    importStep = 3;
+    _renderReviewStep();
+    _syncImportStepUI();
+    return;
+  }
+  if (importStep === 3) {
+    _doImport();
+  }
+}
+function importStepBack() {
+  if (importStep > 1) { importStep--; _syncImportStepUI(); }
+}
+
+function _syncImportStepUI() {
+  /* Step indicators */
+  [1,2,3].forEach(function(n) {
+    var ind = document.getElementById("impStep" + n + "Ind");
+    if (!ind) return;
+    ind.classList.remove("active","done");
+    if (n < importStep)       ind.classList.add("done");
+    else if (n === importStep) ind.classList.add("active");
+  });
+
+  /* Panels */
+  [1,2,3].forEach(function(n) {
+    var p = document.getElementById("impPanel" + n);
+    if (p) p.classList.toggle("active", n === importStep);
+  });
+
+  /* Footer buttons */
+  var backBtn = document.getElementById("impBackBtn");
+  var nextBtn = document.getElementById("impNextBtn");
+  if (backBtn) backBtn.style.display = importStep > 1 ? "" : "none";
+  if (nextBtn) {
+    if (importStep === 3) {
+      var canImport = importValidRows.length > 0;
+      nextBtn.textContent = "Import " + importValidRows.length + " Employees";
+      nextBtn.disabled    = !canImport;
+      nextBtn.style.opacity = canImport ? "1" : ".5";
+    } else {
+      nextBtn.textContent  = "Next →";
+      nextBtn.disabled     = false;
+      nextBtn.style.opacity = "1";
+    }
+  }
+}
+
+/* ── Review step rendering ── */
+function _renderReviewStep() {
+  /* Stats chips */
+  const statsEl = document.getElementById("importReviewStats");
+  if (statsEl) {
+    statsEl.innerHTML =
+      '<div class="import-stat-chip total"><div class="import-stat-num">' + importParsedRows.length + '</div><div>Total Rows</div></div>' +
+      '<div class="import-stat-chip valid"><div class="import-stat-num">' + importValidRows.length + '</div><div>Valid</div></div>' +
+      '<div class="import-stat-chip errors"><div class="import-stat-num">' + importErrorRows.length + '</div><div>Errors</div></div>';
+  }
+
+  /* Error list */
+  const errEl = document.getElementById("importReviewErrors");
+  if (errEl) {
+    if (importErrorRows.length) {
+      errEl.style.display = "";
+      errEl.innerHTML = '<strong style="display:block;margin-bottom:4px;">⚠ Rows with errors (will be skipped):</strong>' +
+        importErrorRows.map(function(e) {
+          return '<div class="import-err-row">Row ' + e.rowIdx + ' — ' + e.errors.join("; ") + '</div>';
+        }).join("");
+    } else {
+      errEl.style.display = "none";
+    }
+  }
+
+  /* Preview table — show all parsed rows */
+  const previewCols = ["empCode","firstName","lastName","dept","desig","doj","status","email","mobile"];
+  const previewLabels = ["Emp Code","First Name","Last Name","Department","Designation","DOJ","Status","Email","Mobile"];
+
+  const tableEl = document.getElementById("importPreviewTable");
+  if (!tableEl) return;
+
+  const thead = "<thead><tr><th>#</th>" + previewLabels.map(function(l) {
+    return "<th>" + l + "</th>";
+  }).join("") + "<th>Status</th></tr></thead>";
+
+  const tbody = "<tbody>" + importParsedRows.map(function(r) {
+    var hasError = r.errors.length > 0;
+    var cls      = hasError ? "row-error" : "row-ok";
+    var statusCell = hasError
+      ? '<td style="color:#EF4444;font-weight:700;">⚠ Skip</td>'
+      : '<td style="color:#10B981;font-weight:700;">✓ Import</td>';
+    return "<tr class='" + cls + "'><td>" + r.rowIdx + "</td>" +
+      previewCols.map(function(k) { return "<td>" + escHtml(r.emp[k] || "—") + "</td>"; }).join("") +
+      statusCell + "</tr>";
+  }).join("") + "</tbody>";
+
+  tableEl.innerHTML = thead + tbody;
+}
+
+/* ── Actually save valid rows ── */
+function _doImport() {
+  if (!importValidRows.length) { showToast("No valid rows to import.", "error"); return; }
+  const emps    = getEmployees();
+  const newEmps = emps.concat(importValidRows);
+  saveEmployees(newEmps);
+  closeImportModal();
+  renderDirectory();
+  populateFilterDropdowns();
+  filterDirectory();
+  showToast(importValidRows.length + " employee" + (importValidRows.length !== 1 ? "s" : "") + " imported successfully!", "success");
+}
+
+/* ══════════════════════════════
    EXPORT
 ══════════════════════════════ */
 function exportEmployees() {
@@ -1839,6 +2228,10 @@ function calcAge(dob) {
   let age = today.getFullYear() - d.getFullYear();
   if (today.getMonth() - d.getMonth() < 0 || (today.getMonth()===d.getMonth() && today.getDate()<d.getDate())) age--;
   return age;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
 /* Logout — works even if app.js not loaded */
